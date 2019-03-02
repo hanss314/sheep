@@ -15,11 +15,11 @@ add_library(language STATIC
         "${CMAKE_CURRENT_BINARY_DIR}/lexer.c"
 )
 
-add_executable(sheep main.c)
+add_executable(sheep src/main.c src/expression.c)
 target_link_libraries(sheep language)
 add_dependencies(sheep language)
 target_include_directories(language PRIVATE include)
 target_include_directories(sheep PRIVATE include)
-add_compile_options(-fsanitize=address,undefined,leak)
-target_link_libraries(sheep asan ubsan)
+#add_compile_options(-fsanitize=address)
+#target_link_libraries(sheep asan)
 

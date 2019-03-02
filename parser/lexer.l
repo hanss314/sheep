@@ -6,6 +6,7 @@
 
 #define YY_DECL int yylex()
 
+#include "expression.h"
 #include "parser.h"
 
 %}

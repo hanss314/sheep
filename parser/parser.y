@@ -2,17 +2,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "expression.h"
+
 extern int yylex();
 extern int yyparse();
 extern FILE* yyin;
-void yyerror(const char* s);
+void yyerror(Expr** expr, const char* s);
 %}
 
 
-//%parse-param { const char **expression }
+%parse-param { Expr** expression }
 
 %union {
     char* symbol;
+    Expr* expr;
+
 }
 
 %defines "include/parser.h"
@@ -22,61 +27,41 @@ void yyerror(const char* s);
 %left T_DOT
 %left T_SPACE
 
-%type<symbol> expr
-%type<symbol> binding
-%type<symbol> application
+%type<expr> expr
+%type<expr> symbol
+%type<expr> binding
+%type<expr> application
 
 %start calc
 
 %%
 
-calc: expr { printf("%s\n", $1); free($1); } ;
+calc: expr { *expression = $1; } ;
 
-expr: T_SYMBOL
+expr: symbol			{ $$ = $1; }
     | binding			{ $$ = $1; }
     | application		{ $$ = $1; }
-    | T_LEFT expr[E] T_RIGHT	{
-    	char* expr = $E;
-    	char* str = malloc(sizeof(char)*256);
-    	strcpy(str, "(");
-	strcat(str, expr);
-	strcat(str, ")");
-	free(expr);
-	$$ = str;
-    }
+    | T_LEFT expr[E] T_RIGHT	{ $$ = $E; }
 ;
 
+symbol: T_SYMBOL { $$ = createSymbol($1); free($1); }
+
 binding:
-    T_LAMBDA T_SYMBOL T_DOT expr {
-    	char* left = $2;
-    	char* right = $4;
-    	char* str = malloc(sizeof(char)*256);
-    	strcpy(str, "λ");
-    	strcat(str, left);
-    	strcat(str, ".");
-    	strcat(str, right);
-    	free(left); free(right);
-    	$$ = str;
+    T_LAMBDA symbol[S] T_DOT expr[E] {
+    	$$ = createBinding($S, $E);
     }
 ;
 
 application:
     expr[L] T_SPACE expr[R] {
-    	char* left = $L;
-	char* right = $R;
-    	char* str = malloc(sizeof(char)*256);
-	strcpy(str, left);
-	strcat(str, " ");
-	strcat(str, right);
-	free(left); free(right);
-	$$ = str;
+    	$$ = createApplication($L, $R);
     }
 ;
 
 
 %%
 
-void yyerror(const char* s) {
+void yyerror(Expr** expr, const char* s) {
 	fprintf(stderr, "Parse error: %s\n", s);
 	exit(1);
 }
