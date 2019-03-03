@@ -55,6 +55,8 @@ char* stringify(Expr* expr){
         free(left); free(right);
         return ret;
     }
+    fprintf(stderr, "A fatal error has occurred");
+    exit(-1);
 }
 
 Expr* evaluate(Expr* expr){
@@ -94,6 +96,9 @@ Expr* substituteLambda(char* name, Expr* expr, Expr* content){
                 substituteLambda(name, expr->left, content),
                 substituteLambda(name, expr->right, content)
                 );
+    } else {
+        fprintf(stderr, "A fatal error has occurred");
+        exit(-1);
     }
     return ret;
 }
