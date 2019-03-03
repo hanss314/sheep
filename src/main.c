@@ -8,18 +8,25 @@ Expr* applyBinding(Expr*, Expr*);
 Expr* evaluate(Expr* expr);
 char* stringify(Expr* expr);
 
-int main() {
-    const char *expr = "(λx.λy.(x y)) ((λx.(x x)) (λx.a))";
+int main(int nargs, char** args) {
+    if (nargs < 1){
+        fprintf(stderr, "File not specified");
+        exit(-1);
+    }
     YY_BUFFER_STATE state;
     Expr* output;
-
-    state = yy_scan_string(expr);
+    //const char *expr = "(λx.λy.(x y)) ((λx.(x x)) (λx.a))";
+    //state = yy_scan_string(expr);
+    yyin = fopen(args[1], "r");
+    if(yyin==NULL){
+        fprintf(stderr, "File %s not found\n", args[1]);
+        exit(-1);
+    }
 
     if (yyparse(&output)) {
         /* error parsing */
         return -1;
     }
-    yy_delete_buffer(state);
     yylex_destroy();
     Expr* evaluated = evaluate(output);
     char* o = stringify(evaluated);
