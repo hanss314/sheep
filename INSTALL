@@ -1,4 +1,5 @@
 To install, run the following commands
 
 cmake .
-make && make install
+make 
+sudo make install
