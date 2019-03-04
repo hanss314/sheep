@@ -4,7 +4,9 @@
 typedef enum ExprType {
     BINDING,
     APPLICATION,
-    SYMBOL
+    SYMBOL,
+//    ASSIGN,
+//    LINE
 } ExprType;
 
 typedef struct Expression{
@@ -15,7 +17,7 @@ typedef struct Expression{
 } Expr;
 
 Expr* createSymbol(char*);
-Expr* createBinding(Expr*, Expr*);
+Expr* createBinding(char*, Expr*);
 Expr* createApplication(Expr*, Expr*);
 Expr* dupExpr(Expr* expr);
 void freeExpr(Expr* expr);

@@ -16,9 +16,9 @@ Expr* createSymbol(char* name){
     return expr;
 }
 
-Expr* createBinding(Expr* symbol, Expr* output){
+Expr* createBinding(char* symbol, Expr* output){
     Expr* lambda = createExpr(BINDING);
-    lambda->left = symbol;
+    lambda->name = symbol;
     lambda->right = output;
     return lambda;
 }
@@ -32,6 +32,7 @@ Expr* createApplication(Expr* left, Expr* right){
 
 void freeExpr(Expr* expr){
     switch (expr->type){
+        case BINDING: freeExpr(expr->right);
         case SYMBOL: free(expr->name); break;
         default:
             freeExpr(expr->left);
@@ -44,7 +45,10 @@ void freeExpr(Expr* expr){
 Expr* dupExpr(Expr* expr){
     Expr* dup = createExpr(expr->type);
     switch (expr->type){
+        case BINDING: dup->right = dupExpr(expr->right);
         case SYMBOL: dup->name = strdup(expr->name); break;
+
+        case APPLICATION:
         default:
             dup->left = dupExpr(expr->left);
             dup->right = dupExpr(expr->right);

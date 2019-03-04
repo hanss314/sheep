@@ -52,14 +52,14 @@ char* stringify(Expr* expr){
         free(left); free(right);
         return ret;
     } else if(expr->type==BINDING){
-        char* left = stringify(expr->left);
+        char* left = expr->name;
         char* right = stringify(expr->right);
         char* ret = malloc(2*sizeof(char)*(strlen(right)+strlen(left)+5));
         strcpy(ret, "λ");
         strcat(ret, left);
         strcat(ret, ".");
         strcat(ret, right);
-        free(left); free(right);
+        free(right);
         return ret;
     }
     fprintf(stderr, "A fatal error has occurred");
@@ -95,14 +95,18 @@ Expr* substituteLambda(char* name, Expr* expr, Expr* content){
         }
     } else if (expr->type == APPLICATION){
         ret = createApplication(
-                substituteLambda(name, expr->left, content),
-                substituteLambda(name, expr->right, content)
-                );
+            substituteLambda(name, expr->left, content),
+            substituteLambda(name, expr->right, content)
+        );
     } else if (expr->type == BINDING){
-        ret = createBinding(
-                substituteLambda(name, expr->left, content),
+        if (strcmp(expr->name, name) == 0){
+            ret = dupExpr(expr);
+        } else {
+            ret = createBinding(
+                strdup(expr->name),
                 substituteLambda(name, expr->right, content)
-                );
+            );
+        }
     } else {
         fprintf(stderr, "A fatal error has occurred");
         exit(-1);
@@ -111,11 +115,7 @@ Expr* substituteLambda(char* name, Expr* expr, Expr* content){
 }
 
 Expr* applyBinding(Expr* lambda, Expr* content){
-    Expr* variable = lambda->left;
-    if(variable->type != SYMBOL){
-        fprintf(stderr, "Attempted to bind non symbol");
-    }
-    char* name = variable->name;
+    char* name = lambda->name;
     Expr* expression = lambda->right;
     Expr* replaced = substituteLambda(name, expression, content);
     return replaced;

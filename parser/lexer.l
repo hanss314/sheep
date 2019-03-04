@@ -16,12 +16,12 @@
 %%
 
 "λ"		                { return T_LAMBDA; }
-[ \t\n]*"\."[ \t\n]*	{ return T_DOT;}
-[ \t\n]+	            { return T_SPACE;};
+[ \t\n]*"\."[ \t\n]*	{ return T_DOT; }
+[ \t\n]+	            { return T_SPACE; }
 "("		                { return T_LEFT;}
 ")"		                { return T_RIGHT;}
-[^λ \t\n\(\)\.]+        { yylval.symbol = strdup(yytext); return T_SYMBOL;}
-#[a-zA-Z0-9]+           { yylval.symbol = yytext; return T_SYMBOL;}
-
+[^λ \t\n\(\)\.;=]+      { yylval.symbol = strdup(yytext); return T_SYMBOL;}
 %%
 
+// [ \t\n]*";"[ \t\n]*	    { return T_SEMICOLON; }
+// [ \t\n]*":="[ \t\n]*	{ return T_ASSIGN; }
