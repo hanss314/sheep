@@ -1,0 +1,4 @@
+To install, run the following commands
+
+cmake .
+make && make install
