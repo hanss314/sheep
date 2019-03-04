@@ -23,7 +23,7 @@ void yyerror(Expr** expr, const char* s);
 %defines "include/parser.h"
 
 %token<symbol> T_SYMBOL
-%token T_LAMBDA T_DOT T_LEFT T_RIGHT T_SPACE//T_SEMICOLON T_ASSIGN
+%token T_LAMBDA T_DOT T_LEFT T_RIGHT T_SPACE T_SEMICOLON T_ASSIGN
 %left T_DOT
 %left T_SPACE
 
@@ -31,25 +31,32 @@ void yyerror(Expr** expr, const char* s);
 %type<expr> symbol
 %type<expr> binding
 %type<expr> application
+%type<expr> statement
+%type<expr> line
 
 
-%start calc
+%start program
 
 %%
-/*
+
 program: line { *expression = $1; } ;
 
 line: statement { $$ = $1; }
-    | statement line
+    | statement line {
+    	$$ = createLine($1, $2);
+    }
 
 statement: expr T_SEMICOLON { $$ = $1; }
-    | symbol T_ASSIGN expr T_SPACE { *expression = $1; }
+    | symbol[S] T_ASSIGN expr[E] T_SEMICOLON {
+    	$$ = createAssignment(strdup($S->name), $E);
+	freeExpr($S);
+    }
 ;
-*/
+/*
 calc: expr 	   { *expression = $1; }
     | expr T_SPACE { *expression = $1; }
 ;
-
+*/
 expr: symbol			{ $$ = $1; }
     | binding			{ $$ = $1; }
     | application		{ $$ = $1; }

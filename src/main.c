@@ -3,17 +3,18 @@
 #include "expression.h"
 #include "parser.h"
 #include "lexer.h"
+#include "heap.h"
 
 Expr* applyBinding(Expr*, Expr*);
-Expr* evaluate(Expr* expr);
-char* stringify(Expr* expr);
+Expr* evaluate(Expr*);
+char* stringify(Expr*);
+void* maybePrint(Expr*);
 
 int main(int nargs, char** args) {
     if (nargs < 1){
         fprintf(stderr, "File not specified");
         exit(-1);
     }
-    YY_BUFFER_STATE state;
     Expr* output;
     //const char *expr = "(λx.λy.(x y)) ((λx.(x x)) (λx.a))";
     //state = yy_scan_string(expr);
@@ -29,11 +30,10 @@ int main(int nargs, char** args) {
     }
     yylex_destroy();
     Expr* evaluated = evaluate(output);
-    char* o = stringify(evaluated);
-    printf("%s\n", o);
+    maybePrint(evaluated);
     freeExpr(output);
     freeExpr(evaluated);
-    free(o);
+    deleteHeap();
     return 0;
 }
 
@@ -65,22 +65,45 @@ char* stringify(Expr* expr){
     fprintf(stderr, "A fatal error has occurred");
     exit(-1);
 }
+void* maybePrint(Expr* expr){
+    if(expr->type != ASSIGN && expr->type != LINE){
+        char* string = stringify(expr);
+        printf("%s\n", string);
+        free(string);
+    }
+}
 
 Expr* evaluate(Expr* expr){
-    Expr* ret;
-    if(expr->type != APPLICATION){
-        return dupExpr(expr);
-    }
-    Expr* left = evaluate(expr->left);
-    Expr* right = evaluate(expr->right);
-    if(left->type != BINDING){
-        return createApplication(left, right);
-    } else {
-        ret = applyBinding(left, right);
-        freeExpr(left); freeExpr(right);
-        Expr* final = evaluate(ret);
-        freeExpr(ret);
-        return final;
+    if(expr->type == BINDING || expr->type == SYMBOL){
+        Expr* value = lookup(expr->name);
+        if (value != NULL){
+            return dupExpr(value);
+        } else {
+            return dupExpr(expr);
+        }
+    } else if (expr->type == LINE){
+        Expr* left = evaluate(expr->left);
+        maybePrint(left);
+        Expr* right = evaluate(expr->right);
+        maybePrint(right);
+        return createLine(left, right);
+    } else if (expr->type == ASSIGN){
+        char* name = expr->name;
+        Expr* right = evaluate(expr->right);
+        heap_insert(name, dupExpr(right));
+        return createAssignment(strdup(name), right);
+    } else if(expr->type == APPLICATION){
+        Expr* left = evaluate(expr->left);
+        Expr* right = evaluate(expr->right);
+        if(left->type != BINDING){
+            return createApplication(left, right);
+        } else {
+            Expr* ret = applyBinding(left, right);
+            freeExpr(left); freeExpr(right);
+            Expr* final = evaluate(ret);
+            freeExpr(ret);
+            return final;
+        }
     }
 
 }
