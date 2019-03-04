@@ -36,7 +36,9 @@ void yyerror(Expr** expr, const char* s);
 
 %%
 
-calc: expr { *expression = $1; } ;
+calc: expr { *expression = $1; }
+    | expr T_SPACE { *expression = $1; } 
+;
 
 expr: symbol			{ $$ = $1; }
     | binding			{ $$ = $1; }
