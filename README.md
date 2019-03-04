@@ -39,11 +39,14 @@ The only exception to this is if the symbol
 is in the expression of a lambda bound to the same symbol. 
 In this case, the symbols would not be replaced.
 
-An example program: ```
+An example program: 
+```
 a := (λx.λy.(y x)) ((λx.(x x)) (λx.q)) (λx.(x λx.x));
 b := (λx.λy.(x y)) ((λx.(x x)) (λx.q)) (λx.(x x x x));
-a; b;```
+a; b;
+```
 outputs
 ```
 (q λx.x)
-(q λx.(((x x) x) x))```
+(q λx.(((x x) x) x))
+```
